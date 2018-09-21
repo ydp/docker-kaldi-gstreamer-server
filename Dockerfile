@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y  \
     python-gi \
     subversion \
     wget \
+    sox \
     zlib1g-dev && \
     apt-get clean autoclean && \
     apt-get autoremove -y && \
@@ -41,20 +42,20 @@ RUN wget http://www.digip.org/jansson/releases/jansson-2.7.tar.bz2 && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/jansson.conf && ldconfig && \
     rm /opt/jansson-2.7.tar.bz2 && rm -rf /opt/jansson-2.7
 
-RUN git clone https://github.com/kaldi-asr/kaldi && \
+RUN git clone https://github.com/ydp/kaldi && \
     cd /opt/kaldi/tools && \
-    make && \
+    make -j 32 && \
     ./install_portaudio.sh && \
     cd /opt/kaldi/src && ./configure --shared && \
     sed -i '/-g # -O0 -DKALDI_PARANOID/c\-O3 -DNDEBUG' kaldi.mk && \
-    make depend && make && \
-    cd /opt/kaldi/src/online && make depend && make && \
-    cd /opt/kaldi/src/gst-plugin && make depend && make && \
+    make depend -j 32 && make -j 32 && \
+    cd /opt/kaldi/src/online && make depend -j 32 && make -j 32 && \
+    cd /opt/kaldi/src/gst-plugin && make depend -j 32 && make -j 32 && \
     cd /opt && \
     git clone https://github.com/alumae/gst-kaldi-nnet2-online.git && \
     cd /opt/gst-kaldi-nnet2-online/src && \
     sed -i '/KALDI_ROOT?=\/home\/tanel\/tools\/kaldi-trunk/c\KALDI_ROOT?=\/opt\/kaldi' Makefile && \
-    make depend && make && \
+    make depend -j 32 && make -j 32 && \
     rm -rf /opt/gst-kaldi-nnet2-online/.git/ && \
     find /opt/gst-kaldi-nnet2-online/src/ -type f -not -name '*.so' -delete && \
     rm -rf /opt/kaldi/.git && \
